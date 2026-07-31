@@ -2,6 +2,8 @@
 
 ## Updating to a newer version
 
+**AUR:** update with your helper — `yay -Syu` (or `paru -Syu`) picks up new releases automatically.
+
 **Pre-built binary:** download the new release archive and run the installer again — it will overwrite the existing binary. No need to uninstall first.
 
 **Installed from source:** pull the latest changes and reinstall:
@@ -89,7 +91,27 @@ cleverswitch
 
 ## Linux
 
-### Option 1: Pre-built binary (recommended)
+### Option 1: AUR (Arch, Manjaro, EndeavourOS, CachyOS…)
+
+Install from the [AUR](https://aur.archlinux.org/packages/cleverswitch) with your preferred helper:
+```bash
+yay -S cleverswitch
+```
+or
+
+```bash
+paru -S cleverswitch
+```
+
+This installs the `cleverswitch` command, the udev rule for non-root HID access, and a systemd **user** service — all managed by pacman, so upgrades and removal are automatic. After installing:
+
+1. **Replug your Logitech receiver** once so the udev rule takes effect.
+2. Enable autostart on login (optional):
+```bash
+systemctl --user enable --now cleverswitch.service
+```
+
+### Option 2: Pre-built binary (other distros)
 
 1. Download `cleverswitch_linux.tar.gz` from the [Releases](https://github.com/MikalaiBarysevich/CleverSwitch/releases) page.
 2. Extract the archive — most desktop environments let you right-click and choose **Extract Here**.
@@ -100,7 +122,7 @@ chmod +x install.sh && ./install.sh
 
 The installer copies the binary to `~/.local/bin/`, checks that the directory is on your PATH, installs udev rules for non-root HID access (with your confirmation), and offers to run CleverSwitch as a systemd user service on login.
 
-### Option 2: From source
+### Option 3: From source
 
 1. Clone the repository.
 2. Open a terminal and navigate to the project folder.
@@ -132,7 +154,11 @@ To verify, open Task Manager and look for `cleverswitch.exe` in the **Details** 
 
 ### Linux
 
-CleverSwitch runs as a systemd **user** service. Handled by `install.sh` or `install_from_sources.sh` during installation. To set it up separately, run:
+CleverSwitch runs as a systemd **user** service.
+
+**AUR:** the package ships the unit; just enable it — `systemctl --user enable --now cleverswitch.service`.
+
+**Pre-built binary / source:** handled by `install.sh` or `install_from_sources.sh` during installation. To set it up separately, run:
 ```bash
 chmod +x scripts/linux/setup_startup.sh
 ./scripts/linux/setup_startup.sh
@@ -160,6 +186,13 @@ brew uninstall cleverswitch
 
 ### Linux
 
+**AUR:** disable the service (if enabled) and remove the package — pacman deletes the binary, udev rule, and service file:
+```bash
+systemctl --user disable --now cleverswitch.service
+yay -R cleverswitch      # or: paru -R cleverswitch
+```
+
+**Pre-built binary / source:**
 ```bash
 chmod +x scripts/linux/uninstall.sh
 ./scripts/linux/uninstall.sh
