@@ -33,7 +33,9 @@ if "!NEW_PATH!"=="!USER_PATH!" (
     echo [INFO] "!INSTALL_DIR!" was not on your PATH - skipping.
 ) else (
     echo [INFO] Removing "!INSTALL_DIR!" from user PATH...
-    setx PATH "!NEW_PATH!" >nul
+    REM See the note in install.bat: setx.exe silently truncates values over
+    REM 1024 characters, so it isn't safe for writing PATH back either.
+    powershell -NoProfile -Command "[Environment]::SetEnvironmentVariable('PATH', $env:NEW_PATH, 'User')"
     echo [OK] PATH updated.
 )
 
