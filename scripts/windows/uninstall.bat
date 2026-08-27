@@ -40,11 +40,15 @@ if "!NEW_PATH!"=="!USER_PATH!" (
     REM than deleting PATH outright) when the install dir was the only
     REM entry - !NEW_PATH! is undefined in that case, and passing that
     REM straight through would otherwise wipe the PATH variable entirely.
-    powershell -NoProfile -ExecutionPolicy Bypass -File "!SCRIPT_DIR!set_user_path.ps1" -Value "!NEW_PATH!"
-    if errorlevel 1 (
-        echo [ERROR] Failed to update PATH - it was not changed.
+    if not exist "!SCRIPT_DIR!set_user_path.ps1" (
+        echo [WARN] set_user_path.ps1 not found alongside uninstall.bat - skipping PATH update.
     ) else (
-        echo [OK] PATH updated.
+        powershell -NoProfile -ExecutionPolicy Bypass -File "!SCRIPT_DIR!set_user_path.ps1" -Value "!NEW_PATH!"
+        if errorlevel 1 (
+            echo [ERROR] Failed to update PATH - it was not changed.
+        ) else (
+            echo [OK] PATH updated.
+        )
     )
 )
 
