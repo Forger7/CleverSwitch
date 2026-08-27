@@ -45,11 +45,16 @@ if "!PATH_PROBE!"=="!USER_PATH!" (
     REM setx.exe silently truncates values over 1024 characters instead of
     REM erroring - easy to hit once Python/Git/VS Code/WinGet/npm etc. have
     REM all added their own PATH entries, and it would drop the very entry
-    REM this step is trying to add without any warning. SetEnvironmentVariable
+    REM this step is trying to add without any warning. set_user_path.ps1
     REM writes straight to the registry and isn't subject to that limit.
-    powershell -NoProfile -Command "[Environment]::SetEnvironmentVariable('PATH', $env:NEW_PATH, 'User')"
-    echo [OK] PATH updated.
-    echo [WARN] Restart your terminal for the PATH change to take effect.
+    powershell -NoProfile -ExecutionPolicy Bypass -File "!SCRIPT_DIR!set_user_path.ps1" -Value "!NEW_PATH!"
+    if errorlevel 1 (
+        echo [ERROR] Failed to update PATH - it was not changed.
+        echo [ERROR] Add "!INSTALL_DIR!" to your PATH manually if needed.
+    ) else (
+        echo [OK] PATH updated.
+        echo [WARN] Restart your terminal for the PATH change to take effect.
+    )
 ) else (
     echo [OK] "!INSTALL_DIR!" is already on your PATH.
 )
