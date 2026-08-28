@@ -36,14 +36,16 @@ if "!NEW_PATH!"=="!USER_PATH!" (
     echo [INFO] Removing "!INSTALL_DIR!" from user PATH...
     REM See the note in install.bat: setx.exe silently truncates values over
     REM 1024 characters, so it isn't safe for writing PATH back either.
-    REM set_user_path.ps1 also correctly writes an *empty* string (rather
-    REM than deleting PATH outright) when the install dir was the only
-    REM entry - !NEW_PATH! is undefined in that case, and passing that
-    REM straight through would otherwise wipe the PATH variable entirely.
+    REM If the install dir was the only PATH entry, NEW_PATH ends up
+    REM undefined here (batch has no defined-but-empty variable state), so
+    REM it isn't part of the environment set_user_path.ps1 inherits and
+    REM $env:NEW_PATH reads as $null there - the script explicitly treats
+    REM that as an empty string rather than skipping the write, so PATH
+    REM ends up present-but-empty instead of being deleted outright.
     if not exist "!SCRIPT_DIR!set_user_path.ps1" (
         echo [WARN] set_user_path.ps1 not found alongside uninstall.bat - skipping PATH update.
     ) else (
-        powershell -NoProfile -ExecutionPolicy Bypass -File "!SCRIPT_DIR!set_user_path.ps1" -Value "!NEW_PATH!"
+        powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "!SCRIPT_DIR!set_user_path.ps1"
         if errorlevel 1 (
             echo [ERROR] Failed to update PATH - it was not changed.
         ) else (
