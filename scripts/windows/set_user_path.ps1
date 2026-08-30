@@ -23,12 +23,36 @@
 # report success if it's 0, so a failure here (e.g. a restrictive execution
 # policy or PowerShell Constrained Language Mode blocking the registry call)
 # surfaces as an error instead of a false "PATH updated".
+#
+# CS_PATH_WRITE=1 must be set by the caller. This script ships in the release
+# zip right next to install.bat/uninstall.bat, and Windows registers a "Run
+# with PowerShell" verb for .ps1 files, so it can be launched directly by
+# accident. Without this guard, a bare run would fall through to $env:NEW_PATH
+# being unset and silently write an empty PATH - the marker turns that into
+# an explicit error instead. NEW_PATH-absent-with-the-marker-present is still
+# a legitimate write (uninstalling the sole PATH entry leaves NEW_PATH
+# undefined - see the note in uninstall.bat), so the guard only checks for
+# the marker, not for NEW_PATH itself.
+
+if ($env:CS_PATH_WRITE -ne '1') {
+    Write-Error 'set_user_path.ps1 must be run via install.bat or uninstall.bat, not directly.'
+    exit 1
+}
 
 $value = $env:NEW_PATH
 if ($null -eq $value) { $value = '' }
 
 try {
     $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Environment', $true)
+    # Best-effort backup of the pre-write value, as insurance against the
+    # empty-PATH case above being hit some other way. Not load-bearing for
+    # correctness, so a failure here doesn't block the real write.
+    try {
+        $previous = $key.GetValue('PATH', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+        $key.SetValue('PATH_CleverSwitchBackup', $previous, [Microsoft.Win32.RegistryValueKind]::ExpandString)
+    } catch {
+        # Non-fatal - proceed to the real write either way.
+    }
     $key.SetValue('PATH', $value, [Microsoft.Win32.RegistryValueKind]::ExpandString)
     $key.Close()
 } catch {

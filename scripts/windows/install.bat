@@ -53,6 +53,7 @@ if "!PATH_PROBE!"=="!USER_PATH!" (
         echo [WARN] set_user_path.ps1 not found alongside install.bat - skipping PATH update.
         echo [WARN] Add "!INSTALL_DIR!" to your PATH manually if needed.
     ) else (
+        set "CS_PATH_WRITE=1"
         powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "!SCRIPT_DIR!set_user_path.ps1"
         if errorlevel 1 (
             echo [ERROR] Failed to update PATH - it was not changed.

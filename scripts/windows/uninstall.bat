@@ -45,6 +45,7 @@ if "!NEW_PATH!"=="!USER_PATH!" (
     if not exist "!SCRIPT_DIR!set_user_path.ps1" (
         echo [WARN] set_user_path.ps1 not found alongside uninstall.bat - skipping PATH update.
     ) else (
+        set "CS_PATH_WRITE=1"
         powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "!SCRIPT_DIR!set_user_path.ps1"
         if errorlevel 1 (
             echo [ERROR] Failed to update PATH - it was not changed.
